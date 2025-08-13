@@ -101,3 +101,116 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: Merge CircuitDesigner (circuit design tool) into Arduino-editor (code editor) so that:
+  - Only one single combined project exists (no separate apps, no separate servers)
+  - Everything runs from within the Arduino-editor folder
+  - Left Sidebar shows all .fzp files in the Arduino-editor's left workspace panel
+  - Clicking a .fzp file replaces the Arduino code editor view with the CircuitDesigner circuit canvas
+  - Right Sidebar has toggle button to open/close the Fritzing parts library when a .fzp file is open
+  - All features from Arduino-editor and CircuitDesigner must work exactly as in their standalone versions
+
+backend:
+  - task: "Arduino Editor Backend Setup"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Successfully copied Arduino Editor backend, installed dependencies, and confirmed FastAPI server running on port 8001"
+
+  - task: "Circuit Components API"
+    implemented: true
+    working: "NA"
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Added circuit components API endpoints (/api/components, /api/components/{id}/svg/{type}) with basic Fritzing parts parsing. Needs testing."
+
+frontend:
+  - task: "Arduino Editor Frontend Setup"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Successfully copied Arduino Editor frontend, installed dependencies, bypassed authentication for development, confirmed main interface working"
+
+  - task: "CircuitDesigner Components Integration"
+    implemented: true
+    working: "NA"
+    file: "circuit/"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Copied CircuitDesigner components to /app/frontend/src/circuit/ and installed required dependencies (@tanstack/react-query, framer-motion, @radix-ui components). Ready for integration."
+
+  - task: "Circuit Canvas View Toggle"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to implement toggle between code editor and circuit canvas when .fzp files are clicked"
+
+  - task: "FZP Files in Workspace"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to modify workspace sidebar to show .fzp files alongside .ino files"
+
+  - task: "Component Library Toggle"
+    implemented: false
+    working: false
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "Need to add component library toggle in right sidebar for circuit mode"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Circuit Components API"
+    - "Circuit Canvas View Toggle"
+    - "FZP Files in Workspace"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Successfully set up Arduino Editor as base application. Added circuit components API and copied CircuitDesigner components. Next step is to implement the integration features: circuit canvas toggle, .fzp file handling, and component library integration."
