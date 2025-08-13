@@ -1131,7 +1131,8 @@ async def save_svg(request: Request):
             file_name += ".svg"
         
         # Create the path within arduino_workspace
-        file_path = Path(ARDUINO_WORKSPACE) / file_name
+        workspace_dir = Path(os.path.join(os.environ.get('TEMP', os.path.join(ROOT_DIR, 'temp')), "arduino_workspace"))
+        file_path = workspace_dir / file_name
         file_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Write the SVG content to the file
