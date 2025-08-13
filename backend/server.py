@@ -14,6 +14,9 @@ import uuid
 from datetime import datetime
 import aiohttp
 
+# Import our Fritzing service
+from services.fritzing_service import fritzing_service
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
