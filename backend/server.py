@@ -1,5 +1,5 @@
 from fastapi import FastAPI, APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 import os
@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 import uuid
 from datetime import datetime
+import aiohttp
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
