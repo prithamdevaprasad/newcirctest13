@@ -717,110 +717,21 @@ async def get_components():
         return {"success": False, "error": str(e)}
 
 @api_router.get("/components/{component_id}/svg/{svg_type}")
-async def get_component_svg(component_id: int, svg_type: str):
-    """Get component SVG for breadboard/schematic view with proper dimensions and scaling"""
+async def get_component_svg(component_id: str, svg_type: str):
+    """Get component SVG using our Fritzing service"""
     try:
-        from fastapi.responses import Response
-        import os
-        from pathlib import Path
-        import xml.etree.ElementTree as ET
+        svg_content = await fritzing_service.get_component_svg(component_id, svg_type)
         
-        # Get the component from the list
-        components = []
-        fritzing_parts_dir = ROOT_DIR / "fritzing-parts"
+        if svg_content:
+            return Response(content=svg_content, media_type="image/svg+xml")
         
-        if not fritzing_parts_dir.exists():
-            raise FileNotFoundError("Fritzing parts directory not found")
-        
-        # Find the component with the given ID
-        component = None
-        component_count = 0
-        
-        for fzp_file in fritzing_parts_dir.glob("**/*.fzp"):
-            component_count += 1
-            if component_count == component_id:
-                try:
-                    tree = ET.parse(fzp_file)
-                    root = tree.getroot()
-                    component = {
-                        "id": component_id,
-                        "fritzingId": fzp_file.stem,
-                        "path": fzp_file,
-                        "title": root.get("title", fzp_file.stem),
-                        "dimensions": {"width": 72, "height": 93.6}  # Default dimensions
-                    }
-                    break
-                except Exception as e:
-                    logger.warning(f"Failed to parse {fzp_file}: {e}")
-        
-        if not component:
-            # Fallback to placeholder if component not found
-            placeholder_svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+        # Return placeholder on error
+        placeholder_svg = f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
     <rect x="4" y="4" width="56" height="56" fill="#666" stroke="#333" stroke-width="2" rx="4"/>
-    <text x="32" y="35" text-anchor="middle" fill="white" font-size="10">C{component_id}</text>
+    <text x="32" y="35" text-anchor="middle" fill="white" font-size="10">{component_id}</text>
 </svg>'''
-            return Response(content=placeholder_svg, media_type="image/svg+xml")
-        
-        # Determine the SVG path based on the component and view type
-        svg_filename = f"{component['fritzingId']}.svg"
-        
-        # Check in different possible locations
-        svg_paths = [
-            fritzing_parts_dir / "svg" / "core" / svg_type / svg_filename,
-            fritzing_parts_dir / "svg" / "contrib" / svg_type / svg_filename,
-            fritzing_parts_dir / "svg" / "user" / svg_type / svg_filename,
-            fritzing_parts_dir / "svg" / "obsolete" / svg_type / svg_filename
-        ]
-        
-        svg_content = None
-        svg_path_found = None
-        for svg_path in svg_paths:
-            if svg_path.exists():
-                with open(svg_path, "r", encoding="utf-8") as f:
-                    svg_content = f.read()
-                svg_path_found = svg_path
-                break
-        
-        if not svg_content:
-            # Fallback to placeholder if SVG not found
-            width = component.get("dimensions", {}).get("width", 64)
-            height = component.get("dimensions", {}).get("height", 64)
-            title = component.get("title", f"C{component_id}")
-            placeholder_svg = f'''<?xml version="1.0" encoding="UTF-8"?>
-<svg width="{width}" height="{height}" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}">
-    <rect x="4" y="4" width="{width-8}" height="{height-8}" fill="#666" stroke="#333" stroke-width="2" rx="4"/>
-    <text x="{width/2}" y="{height/2}" text-anchor="middle" fill="white" font-size="10">{title}</text>
-</svg>'''
-            return Response(content=placeholder_svg, media_type="image/svg+xml")
-        
-        # Process the SVG to ensure it has proper dimensions and viewBox
-        try:
-            # Parse the SVG
-            svg_root = ET.fromstring(svg_content)
-            
-            # Get or set dimensions
-            width = component.get("dimensions", {}).get("width", 72)
-            height = component.get("dimensions", {}).get("height", 93.6)
-            
-            # Check if SVG has viewBox attribute
-            viewbox = svg_root.get("viewBox")
-            if not viewbox:
-                # If no viewBox, create one based on width and height
-                svg_root.set("viewBox", f"0 0 {width} {height}")
-            
-            # Ensure width and height attributes are set
-            svg_root.set("width", str(width))
-            svg_root.set("height", str(height))
-            
-            # Convert back to string
-            svg_content = ET.tostring(svg_root, encoding="unicode")
-        except Exception as e:
-            logger.warning(f"Error processing SVG dimensions: {e}")
-            # Continue with original SVG if processing fails
-            pass
-        
-        return Response(content=svg_content, media_type="image/svg+xml")
+        return Response(content=placeholder_svg, media_type="image/svg+xml")
     except Exception as e:
         logger.error(f"Error fetching component SVG: {e}")
         # Return placeholder on error
