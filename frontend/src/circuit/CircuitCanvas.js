@@ -9,6 +9,8 @@ const CircuitCanvas = ({ onBack }) => {
   const [placedComponents, setPlacedComponents] = useState([]);
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [showComponentLibrary, setShowComponentLibrary] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadingComponents, setLoadingComponents] = useState(false);
 
   // Load components from backend
   useEffect(() => {
@@ -17,12 +19,34 @@ const CircuitCanvas = ({ onBack }) => {
 
   const loadComponents = async () => {
     try {
+      setLoading(true);
       const response = await axios.get(`${API}/components`);
       if (response.data.success) {
         setComponents(response.data.components || []);
       }
     } catch (error) {
       console.error('Error loading components:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadFritzingComponents = async () => {
+    try {
+      setLoadingComponents(true);
+      const response = await axios.post(`${API}/components/load`);
+      if (response.data.success) {
+        // Reload components after loading
+        await loadComponents();
+        alert(response.data.message);
+      } else {
+        alert('Error loading components: ' + response.data.error);
+      }
+    } catch (error) {
+      console.error('Error loading Fritzing components:', error);
+      alert('Error loading Fritzing components: ' + error.message);
+    } finally {
+      setLoadingComponents(false);
     }
   };
 
