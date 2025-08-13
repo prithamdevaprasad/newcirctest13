@@ -835,9 +835,11 @@ async def get_component_svg(component_id: int, svg_type: str):
 async def load_components():
     """Load Fritzing components"""
     try:
-        # This endpoint is just a placeholder to match the frontend's expectation
-        # The actual component loading happens in the GET /components endpoint
-        return {"success": True, "message": "Components loaded successfully"}
+        # Force reload of components
+        fritzing_service.loaded = False
+        fritzing_service.components_cache = []
+        components = await fritzing_service.load_components()
+        return {"success": True, "message": f"Loaded {len(components)} components successfully"}
     except Exception as e:
         logger.error(f"Error loading components: {e}")
         return {"success": False, "error": str(e)}
